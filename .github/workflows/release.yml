@@ -1,0 +1,81 @@
+name: Release Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag to publish as a release'
+        required: true
+        default: 'v0.1.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set release version
+        id: version
+        shell: bash
+        run: |
+          TAG_NAME="${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}"
+          VERSION="${TAG_NAME#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+
+          node <<'NODE'
+          const fs = require('fs');
+          const version = process.env.RELEASE_VERSION;
+
+          const replacements = [
+            ['src/skill-logo/block.json', /"version":\s*"[^"]+"/, `"version": "${version}"`],
+            ['skill-logo.php', /Version:\s+\S+/, `Version:           ${version}`],
+            ['skill-logo.php', /define\( 'TECH_STACK_SKILL_LOGO_VERSION', '[^']+' \);/, `define( 'TECH_STACK_SKILL_LOGO_VERSION', '${version}' );`],
+            ['readme.txt', /Stable tag:\s+\S+/, `Stable tag:        ${version}`],
+            ['readme.txt', /=\s+[0-9.]+\s+=/, `= ${version} =`],
+          ];
+
+          for (const [filePath, pattern, replacement] of replacements) {
+            const current = fs.readFileSync(filePath, 'utf8');
+            const updated = current.replace(pattern, replacement);
+            if (updated === current) {
+              throw new Error(`Failed to update ${filePath}`);
+            }
+            fs.writeFileSync(filePath, updated);
+          }
+          NODE
+        env:
+          RELEASE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build plugin assets
+        run: npm run build
+
+      - name: Package plugin zip
+        run: npm run plugin-zip
+
+      - name: Upload GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          files: skill-logo.zip
+          generate_release_notes: true

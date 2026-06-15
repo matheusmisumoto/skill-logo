@@ -5,11 +5,27 @@
 	"version": "0.1.0",
 	"title": "Skill Logo",
 	"category": "widgets",
-	"icon": "smiley",
-	"description": "Example block scaffolded with Create Block tool.",
+	"icon": "editor-code",
+	"description": "Displays configurable SVG logos and badges.",
 	"example": {},
 	"supports": {
-		"html": false
+		"html": false,
+		"align": ["wide", "full"]
+	},
+	"attributes": {
+		"logos": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			},
+			"default": []
+		},
+		"size": {
+			"type": "number"
+		},
+		"gap": {
+			"type": "number"
+		}
 	},
 	"textdomain": "skill-logo",
 	"editorScript": "file:./index.js",

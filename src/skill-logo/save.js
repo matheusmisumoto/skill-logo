@@ -6,19 +6,37 @@
  */
 import { useBlockProps } from '@wordpress/block-editor';
 
-/**
- * The save function defines the way in which the different attributes should
- * be combined into the final markup, which is then serialized by the block
- * editor into `post_content`.
- *
- * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#save
- *
- * @return {Element} Element to render.
- */
-export default function save() {
+import { getSelectedLogos, LogoIcon } from './logos';
+
+export default function save( { attributes } ) {
+	const selectedIds =
+		attributes.logos ??
+		( attributes.language ? [ attributes.language ] : [] );
+	const selectedLogos = getSelectedLogos( selectedIds );
+	const logoSize = attributes.size;
+	const logoGap = attributes.gap;
+	const blockProps = useBlockProps.save( {
+		'data-skill-logo-logos': selectedIds.join( ',' ),
+		style:
+			{
+				...( typeof logoSize === 'number'
+					? {
+						'--skill-logo-size': `${ logoSize }rem`,
+					}
+					: {} ),
+				...( typeof logoGap === 'number'
+					? {
+						'--skill-logo-gap': `${ logoGap }rem`,
+					}
+					: {} ),
+			},
+	} );
+
 	return (
-		<p { ...useBlockProps.save() }>
-			{ 'Skill Logo – hello from the saved content!' }
-		</p>
+		<div { ...blockProps }>
+			{ selectedLogos.map( ( logo ) => (
+				<LogoIcon logo={ logo } key={ logo.symbolId } />
+			) ) }
+		</div>
 	);
 }

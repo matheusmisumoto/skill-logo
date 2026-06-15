@@ -1,9 +1,83 @@
-/**
- * The following styles get applied inside the editor only.
- *
- * Replace them with your own styles or remove the file completely.
- */
-
 .wp-block-tech-stack-skill-logo {
-	border: 1px dotted #f00;
+	display: flex;
+	padding: 1.5rem;
+	flex-wrap: wrap;
+	justify-content: center;
+	flex-direction: row;
+	gap: var( --skill-logo-gap, 0.5rem );
+}
+
+.wp-block-tech-stack-skill-logo .skill-logo__icon {
+	width: var( --skill-logo-size, 4.5rem );
+	height: var( --skill-logo-size, 4.5rem );
+}
+
+.skill-logo__reorder {
+	display: grid;
+	gap: 0.5rem;
+	margin-top: 1rem;
+}
+
+.skill-logo__reorder-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.25rem 0.75rem;
+	gap: 1rem;
+	border: 1px solid rgba(15, 23, 42, 0.12);
+	border-radius: 14px;
+	background: rgba(255, 255, 255, 0.7);
+	cursor: grab;
+}
+
+.skill-logo__reorder-row:active {
+	cursor: grabbing;
+}
+
+.skill-logo__drag-handle {
+	display: inline-flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	flex: 0 0 auto;
+	padding: 0.25rem 0.15rem;
+	border-radius: 999px;
+}
+
+.skill-logo__drag-handle span {
+	display: block;
+	width: 2px;
+	height: 2px;
+	border-radius: 50%;
+	background: rgba(15, 23, 42, 0.55);
+}
+
+.skill-logo__reorder-content {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	min-width: 0;
+	flex: 1;
+
+	button {
+		font-size: 0.8125rem;
+
+		svg {
+			height: 1.25rem;
+			width: auto;
+		}
+	}
+}
+
+.skill-logo__placeholder {
+	text-align: center;
+	padding: 24px;
+}
+
+.skill-logo__loading {
+	text-align: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 8px;
 }

@@ -1,12 +1,29 @@
-/**
- * The following styles get applied both on the front of your site
- * and in the editor.
- *
- * Replace them with your own styles or remove the file completely.
- */
-
 .wp-block-tech-stack-skill-logo {
-	background-color: #21759b;
-	color: #fff;
-	padding: 2px;
+	display: flex;
+	padding: 1.5rem;
+	flex-wrap: wrap;
+	justify-content: center;
+	flex-direction: row;
+	gap: var( --skill-logo-gap, 0.5rem );
+}
+
+.wp-block-tech-stack-skill-logo .skill-logo__sprite {
+	position: absolute;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.wp-block-tech-stack-skill-logo .skill-logo__icon {
+	width: var( --skill-logo-size, 4.5rem );
+	height: var( --skill-logo-size, 4.5rem );
+}
+
+.skill-logo__sprite-sheet {
+	position: absolute;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+	pointer-events: none;
 }
