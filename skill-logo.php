@@ -341,6 +341,34 @@ function tech_stack_skill_logo_parse_svg_markup( $svg_markup ) {
 }
 
 /**
+ * Builds a unique logo key from the logo name.
+ *
+ * @param string             $label     Logo label.
+ * @param int                $index     Row index.
+ * @param array<int, string> $used_keys Already used keys.
+ * @return string
+ */
+function tech_stack_skill_logo_generate_logo_key( $label, $index, array &$used_keys ) {
+	$key = sanitize_title( $label );
+
+	if ( '' === $key ) {
+		$key = 'logo-' . ( $index + 1 );
+	}
+
+	$base_key = $key;
+	$suffix = 1;
+
+	while ( in_array( $key, $used_keys, true ) ) {
+		$key = $base_key . $suffix;
+		++$suffix;
+	}
+
+	$used_keys[] = $key;
+
+	return $key;
+}
+
+/**
  * Sanitizes a single logo row from the settings page.
  *
  * @param array<string, mixed> $entry Logo row.
@@ -354,26 +382,8 @@ function tech_stack_skill_logo_sanitize_logo_entry( $entry, $index, array &$used
 	}
 
 	$label = sanitize_text_field( $entry['label'] ?? '' );
-	$key = sanitize_title( $entry['key'] ?? '' );
 	$svg_markup = trim( (string) ( $entry['svg'] ?? '' ) );
-
-	if ( '' === $key ) {
-		$key = sanitize_title( $label );
-	}
-
-	if ( '' === $key ) {
-		$key = 'logo-' . ( $index + 1 );
-	}
-
-	$base_key = $key;
-	$suffix = 2;
-
-	while ( in_array( $key, $used_keys, true ) ) {
-		$key = $base_key . '-' . $suffix;
-		++$suffix;
-	}
-
-	$used_keys[] = $key;
+	$key = tech_stack_skill_logo_generate_logo_key( $label, $index, $used_keys );
 
 	$sanitized_svg = wp_kses( $svg_markup, tech_stack_skill_logo_get_allowed_svg_tags() );
 
@@ -556,18 +566,6 @@ function tech_stack_skill_logo_render_logo_row( $index, array $logo = array() ) 
 				/>
 			</div>
 			<div>
-				<label for="skill-logo-key-<?php echo esc_attr( $index ); ?>"><?php esc_html_e( 'Logo key', 'skill-logo' ); ?></label>
-				<input
-					type="text"
-					class="regular-text"
-					id="skill-logo-key-<?php echo esc_attr( $index ); ?>"
-					name="<?php echo esc_attr( TECH_STACK_SKILL_LOGO_OPTION . '[' . $index . '][key]' ); ?>"
-					value="<?php echo esc_attr( $key ); ?>"
-					placeholder="typescript"
-					data-skill-logo-key
-				/>
-			</div>
-			<div>
 				<label for="skill-logo-svg-<?php echo esc_attr( $index ); ?>"><?php esc_html_e( 'Raw SVG', 'skill-logo' ); ?></label>
 				<textarea
 					class="code"
@@ -706,20 +704,6 @@ function tech_stack_skill_logo_render_admin_page() {
 			}
 		} );
 
-		container.addEventListener( 'input', ( event ) => {
-			const labelInput = event.target.closest( '[data-skill-logo-label]' );
-
-			if ( ! labelInput ) {
-				return;
-			}
-
-			const row = labelInput.closest( '.skill-logo-row' );
-			const keyInput = row ? row.querySelector( '[data-skill-logo-key]' ) : null;
-
-			if ( keyInput && ! keyInput.value.trim() ) {
-				keyInput.value = slugify( labelInput.value );
-			}
-		} );
 	} )();
 	</script>
 <?php
