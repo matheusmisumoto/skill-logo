@@ -16,6 +16,7 @@ import {
 import { close, code } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 import { useEffect, useState } from '@wordpress/element';
+import apiFetch from '@wordpress/api-fetch';
 
 /**
  * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
@@ -108,32 +109,16 @@ export default function Edit( { attributes, setAttributes } ) {
 
 		const fetchLogos = async () => {
 			try {
-				const restRoot = `${ window.location.origin }${ window.location.pathname.replace(
-					/\/wp-admin\/.*$/,
-					'/'
-				) }wp-json/skill-logo/v1/logos`;
-				const headers = {};
-				if ( typeof window !== 'undefined' && window.skillLogo && window.skillLogo.nonce ) {
-					headers['X-WP-Nonce'] = window.skillLogo.nonce;
-				}
-
-				const response = await fetch( restRoot, {
-					credentials: 'same-origin',
-					headers,
+				const data = await apiFetch( {
+					path: '/skill-logo/v1/logos',
 				} );
-
-				if ( ! response.ok ) {
-					console.error( 'Failed to fetch logos:', response.statusText, response.body);
-					return;
-				}
-
-				const data = await response.json();
 
 				if ( isActive && Array.isArray( data?.logos ) ) {
 					setRuntimeLogos( data.logos );
 					setLoading( false );
 				}
 			} catch ( error ) {
+				console.error( 'Failed to fetch logos:', error );
 				setLoading( false );
 				return;
 			}
