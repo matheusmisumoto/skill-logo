@@ -4,7 +4,7 @@
 	flex-wrap: wrap;
 	justify-content: center;
 	flex-direction: row;
-	gap: var( --skill-logo-gap, 0.5rem );
+	gap: var(--skill-logo-gap, 0.5rem);
 }
 
 .wp-block-tech-stack-skill-logo .skill-logo__sprite {
@@ -16,8 +16,8 @@
 }
 
 .wp-block-tech-stack-skill-logo .skill-logo__icon {
-	width: var( --skill-logo-size, 4.5rem );
-	height: var( --skill-logo-size, 4.5rem );
+	width: var(--skill-logo-size, 4.5rem);
+	height: var(--skill-logo-size, 4.5rem);
 }
 
 .skill-logo__sprite-sheet {
