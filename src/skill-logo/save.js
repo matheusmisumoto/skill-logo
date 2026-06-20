@@ -12,24 +12,23 @@ export default function save( { attributes } ) {
 	const selectedIds =
 		attributes.logos ??
 		( attributes.language ? [ attributes.language ] : [] );
-	const selectedLogos = getSelectedLogos( selectedIds );
+	const selectedLogos = getSelectedLogos( selectedIds, [] );
 	const logoSize = attributes.size;
 	const logoGap = attributes.gap;
 	const blockProps = useBlockProps.save( {
 		'data-skill-logo-logos': selectedIds.join( ',' ),
-		style:
-			{
-				...( typeof logoSize === 'number'
-					? {
+		style: {
+			...( typeof logoSize === 'number'
+				? {
 						'--skill-logo-size': `${ logoSize }rem`,
-					}
-					: {} ),
-				...( typeof logoGap === 'number'
-					? {
+				  }
+				: {} ),
+			...( typeof logoGap === 'number'
+				? {
 						'--skill-logo-gap': `${ logoGap }rem`,
-					}
-					: {} ),
-			},
+				  }
+				: {} ),
+		},
 	} );
 
 	return (

@@ -6,11 +6,23 @@ function getRuntimeLogoData() {
 		return [];
 	}
 
-	const techStackSkillLogoData =
-		window.techStackSkillLogoData ||
-		window.parent?.techStackSkillLogoData ||
-		window.top?.techStackSkillLogoData ||
-		null;
+	let techStackSkillLogoData = null;
+
+	try {
+		techStackSkillLogoData = window.techStackSkillLogoData || null;
+	} catch ( _ ) {}
+
+	if ( ! techStackSkillLogoData ) {
+		try {
+			techStackSkillLogoData = window.parent?.techStackSkillLogoData || null;
+		} catch ( _ ) {}
+	}
+
+	if ( ! techStackSkillLogoData ) {
+		try {
+			techStackSkillLogoData = window.top?.techStackSkillLogoData || null;
+		} catch ( _ ) {}
+	}
 
 	const logos = techStackSkillLogoData?.logos;
 
@@ -18,9 +30,23 @@ function getRuntimeLogoData() {
 		return [];
 	}
 
-	return logos
-		.map( ( logo ) => normalizeLogo( logo ) )
-		.filter( Boolean );
+	return logos.map( ( logo ) => normalizeLogo( logo ) ).filter( Boolean );
+}
+
+function createSelectedLogoSnapshot( logoKey ) {
+	if ( typeof logoKey !== 'string' || ! logoKey.trim() ) {
+		return null;
+	}
+
+	const key = logoKey.trim();
+
+	return {
+		key,
+		label: key,
+		symbolId: `skill-logo-${ key }`,
+		viewBox: DEFAULT_VIEW_BOX,
+		content: '',
+	};
 }
 
 function normalizeLogo( logo ) {
@@ -43,8 +69,7 @@ function normalizeLogo( logo ) {
 		typeof logo.viewBox === 'string' && logo.viewBox.trim()
 			? logo.viewBox.trim()
 			: DEFAULT_VIEW_BOX;
-	const content =
-		typeof logo.content === 'string' ? logo.content : '';
+	const content = typeof logo.content === 'string' ? logo.content : '';
 
 	return {
 		key,
@@ -71,15 +96,25 @@ export function getLogo( logoKey, logos = getRuntimeLogoData() ) {
 		return null;
 	}
 
-	return ( Array.isArray( logos ) ? logos : [] ).find(
-		( logo ) => logo.key === logoKey
-	) || null;
+	return (
+		( Array.isArray( logos ) ? logos : [] ).find(
+			( logo ) => logo.key === logoKey
+		) || null
+	);
 }
 
-export function getSelectedLogos( selectedLogos, logos = getRuntimeLogoData() ) {
+export function getSelectedLogos(
+	selectedLogos,
+	logos = getRuntimeLogoData()
+) {
 	const values = Array.isArray( selectedLogos ) ? selectedLogos : [];
 
-	return values.map( ( logoKey ) => getLogo( logoKey, logos ) ).filter( Boolean );
+	return values
+		.map(
+			( logoKey ) =>
+				getLogo( logoKey, logos ) || createSelectedLogoSnapshot( logoKey )
+		)
+		.filter( Boolean );
 }
 
 import { useRef, useEffect } from '@wordpress/element';
@@ -98,35 +133,43 @@ export function LogoSprite( { logos: selectedLogos } ) {
 			container.removeChild( container.firstChild );
 		}
 
-		( Array.isArray( selectedLogos ) ? selectedLogos : [] ).forEach( ( logo ) => {
-			try {
-				const content = logo?.content || '';
-				if ( ! content ) {
-					return;
+		( Array.isArray( selectedLogos ) ? selectedLogos : [] ).forEach(
+			( logo ) => {
+				try {
+					const content = logo?.content || '';
+					if ( ! content ) {
+						return;
+					}
+
+					const parser = new DOMParser();
+					const doc = parser.parseFromString(
+						`<svg xmlns="${ SVG_NS }">${ content }</svg>`,
+						'image/svg+xml'
+					);
+
+					// Abort if parsing failed
+					if ( doc.querySelector( 'parsererror' ) ) {
+						return;
+					}
+
+					const svg = doc.documentElement;
+					const symbol = document.createElementNS( SVG_NS, 'symbol' );
+					symbol.setAttribute( 'id', logo.symbolId );
+					symbol.setAttribute(
+						'viewBox',
+						logo.viewBox || DEFAULT_VIEW_BOX
+					);
+
+					Array.from( svg.childNodes ).forEach( ( node ) => {
+						symbol.appendChild( document.importNode( node, true ) );
+					} );
+
+					container.appendChild( symbol );
+				} catch ( _ ) {
+					// ignore malformed logo content
 				}
-
-				const parser = new DOMParser();
-				const doc = parser.parseFromString( `<svg xmlns="${ SVG_NS }">${ content }</svg>`, 'image/svg+xml' );
-
-				// Abort if parsing failed
-				if ( doc.querySelector( 'parsererror' ) ) {
-					return;
-				}
-
-				const svg = doc.documentElement;
-				const symbol = document.createElementNS( SVG_NS, 'symbol' );
-				symbol.setAttribute( 'id', logo.symbolId );
-				symbol.setAttribute( 'viewBox', logo.viewBox || DEFAULT_VIEW_BOX );
-
-				Array.from( svg.childNodes ).forEach( ( node ) => {
-					symbol.appendChild( document.importNode( node, true ) );
-				} );
-
-				container.appendChild( symbol );
-			} catch ( _ ) {
-				// ignore malformed logo content
 			}
-		} );
+		);
 	}, [ selectedLogos ] );
 
 	return (
@@ -144,7 +187,7 @@ export function LogoIcon( { logo } ) {
 	if ( ! logo ) {
 		return null;
 	}
-	
+
 	return (
 		<svg
 			className="skill-logo__icon"

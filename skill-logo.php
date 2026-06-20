@@ -500,14 +500,16 @@ add_action( 'rest_api_init', 'tech_stack_skill_logo_register_rest_routes' );
  */
 function tech_stack_skill_logo_print_runtime_data() {
 	$data = tech_stack_skill_logo_get_runtime_data();
+
 	$script = 'window.techStackSkillLogoData = ' . wp_json_encode(
 		$data,
 		JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
 	) . ';';
 
-	echo wp_get_inline_script_tag( $script );
+    // The 'before' parameter ensures the data is loaded before your script runs.
+    wp_add_inline_script( 'tech-stack-skill-logo', $script, 'before' );
 }
-add_action( 'wp_head', 'tech_stack_skill_logo_print_runtime_data' );
+add_action( 'enqueue_block_editor_assets', 'tech_stack_skill_logo_print_runtime_data' );
 
 /**
  * Registers the plugin option used by the Media page.
@@ -708,3 +710,67 @@ function tech_stack_skill_logo_render_admin_page() {
 	</script>
 <?php
 }
+
+/**
+ * Render template for the SVG Sprite Sheet block.
+ * * This scans the post content for the `data-skill-logo-logos` attribute
+ * and dynamically renders only the SVGs required for this specific post.
+ */
+
+function tech_stack_render_svg_sprite_sheet() {
+    global $post;
+
+    // Bail early if we are not on a single post/page or if there's no content
+    if ( ! $post instanceof WP_Post || empty( $post->post_content ) ) {
+        return;
+    }
+
+    // 1. Scan the post's raw HTML content for your data attribute
+    // This catches the logos regardless of block nesting or layout
+    preg_match_all( '/data-skill-logo-logos="([^"]+)"/', $post->post_content, $matches );
+
+    if ( empty( $matches[1] ) ) {
+        return; // No logos found on this page, output nothing.
+    }
+
+    // 2. Extract and deduplicate the logos
+    $used_logos = [];
+    foreach ( $matches[1] as $match ) {
+        // Splitting by comma in case you ever support multiple logos in one block (e.g., "html5,css3")
+        $logos = array_map( 'trim', explode( ',', $match ) );
+        $used_logos = array_merge( $used_logos, $logos );
+    }
+    $used_logos = array_unique( $used_logos );
+
+    // 3. Define your SVG library (or fetch it from a JSON file / helper function)
+    // Replace these with your actual paths and viewBoxes
+    $data = tech_stack_skill_logo_get_runtime_data();
+    $svg_library = array();
+
+    foreach ( $data['logos'] ?? array() as $logo ) {
+        if ( ! is_array( $logo ) || empty( $logo['key'] ) ) {
+            continue;
+        }
+
+        $svg_library[ $logo['key'] ] = $logo;
+    }
+
+    if ( empty( $svg_library ) ) {
+        return;
+    }
+
+    ?>
+    <svg class="skill-logo__sprite-sheet" aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;">
+        <?php foreach ( $used_logos as $logo_key ) : ?>
+            <?php if ( isset( $svg_library[ $logo_key ] ) ) : ?>
+                <?php $logo = $svg_library[ $logo_key ]; ?>
+                <symbol id="<?php echo esc_attr( $logo['symbolId'] ?? 'skill-logo-' . $logo_key ); ?>" viewBox="<?php echo esc_attr( $logo['viewBox'] ); ?>">
+                    <?php echo wp_kses( $logo['content'], tech_stack_skill_logo_get_allowed_svg_tags() ); ?>
+                </symbol>
+            <?php endif; ?>
+
+        <?php endforeach; ?>
+    </svg>
+<?php
+}
+add_action( 'wp_body_open', 'tech_stack_render_svg_sprite_sheet' );

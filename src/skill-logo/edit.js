@@ -52,13 +52,13 @@ export default function Edit( { attributes, setAttributes } ) {
 		style: {
 			...( typeof logoSize === 'number'
 				? {
-					'--skill-logo-size': `${ logoSize }rem`,
-				}
+						'--skill-logo-size': `${ logoSize }rem`,
+				  }
 				: {} ),
 			...( typeof logoGap === 'number'
 				? {
-					'--skill-logo-gap': `${ logoGap }rem`,
-				}
+						'--skill-logo-gap': `${ logoGap }rem`,
+				  }
 				: {} ),
 		},
 	} );
@@ -109,18 +109,20 @@ export default function Edit( { attributes, setAttributes } ) {
 
 		const fetchLogos = async () => {
 			try {
-				const data = await apiFetch( {
-					path: '/skill-logo/v1/logos',
-				} );
+				// apiFetch handles the REST root, nonce headers, and JSON parsing automatically
+				const data = await apiFetch( { path: '/skill-logo/v1/logos' } );
 
 				if ( isActive && Array.isArray( data?.logos ) ) {
 					setRuntimeLogos( data.logos );
 					setLoading( false );
 				}
 			} catch ( error ) {
+				// apiFetch throws an error object for non-2xx responses
 				console.error( 'Failed to fetch logos:', error );
-				setLoading( false );
-				return;
+				
+				if ( isActive ) {
+					setLoading( false );
+				}
 			}
 		};
 
@@ -140,7 +142,10 @@ export default function Edit( { attributes, setAttributes } ) {
 				>
 					<RangeControl
 						label={ __( 'Logo size', 'skill-logo' ) }
-						help={ __( 'Uses rem. Leave empty to use the default CSS.', 'skill-logo' ) }
+						help={ __(
+							'Uses rem. Leave empty to use the default CSS.',
+							'skill-logo'
+						) }
 						min={ 1 }
 						max={ 20 }
 						step={ 0.25 }
@@ -150,7 +155,10 @@ export default function Edit( { attributes, setAttributes } ) {
 					/>
 					<RangeControl
 						label={ __( 'Logo gap', 'skill-logo' ) }
-						help={ __( 'Uses rem. Leave empty to use the default CSS.', 'skill-logo' ) }
+						help={ __(
+							'Uses rem. Leave empty to use the default CSS.',
+							'skill-logo'
+						) }
 						min={ 0 }
 						max={ 4 }
 						step={ 0.125 }
@@ -168,7 +176,10 @@ export default function Edit( { attributes, setAttributes } ) {
 						value=""
 						options={ logoOptions }
 						onChange={ ( logoKey ) => {
-							if ( ! logoKey || selectedIds.includes( logoKey ) ) {
+							if (
+								! logoKey ||
+								selectedIds.includes( logoKey )
+							) {
 								return;
 							}
 
@@ -190,7 +201,8 @@ export default function Edit( { attributes, setAttributes } ) {
 										key={ `${ logoKey }-${ index }` }
 										draggable={ true }
 										onDragStart={ ( event ) => {
-											event.dataTransfer.effectAllowed = 'move';
+											event.dataTransfer.effectAllowed =
+												'move';
 											event.dataTransfer.setData(
 												'text/plain',
 												String( index )
@@ -202,7 +214,9 @@ export default function Edit( { attributes, setAttributes } ) {
 										onDrop={ ( event ) => {
 											event.preventDefault();
 											const fromIndex = Number.parseInt(
-												event.dataTransfer.getData( 'text/plain' ),
+												event.dataTransfer.getData(
+													'text/plain'
+												),
 												10
 											);
 
@@ -229,7 +243,9 @@ export default function Edit( { attributes, setAttributes } ) {
 											<Button
 												variant="tertiary"
 												isDestructive
-												onClick={ () => removeLogo( logoKey ) }
+												onClick={ () =>
+													removeLogo( logoKey )
+												}
 											>
 												{ close }
 											</Button>
@@ -238,7 +254,12 @@ export default function Edit( { attributes, setAttributes } ) {
 								);
 							} )
 						) : (
-							<p>{ __( 'No logos selected yet. Add one to get started.', 'skill-logo' ) }</p>
+							<p>
+								{ __(
+									'No logos selected yet. Add one to get started.',
+									'skill-logo'
+								) }
+							</p>
 						) }
 					</div>
 				</PanelBody>
@@ -246,23 +267,26 @@ export default function Edit( { attributes, setAttributes } ) {
 			<div { ...blockProps }>
 				<LogoSprite logos={ selectedLogos } />
 				{ loading && selectedIds.length > 0 ? (
-						<div className="skill-logo__loading">
-							<Spinner />
-						</div>
+					<div className="skill-logo__loading">
+						<Spinner />
+					</div>
+				) : selectedLogos.length > 0 ? (
+					selectedLogos.map( ( logo ) => (
+						<LogoIcon logo={ logo } key={ logo.symbolId } />
+					) )
 				) : (
-					selectedLogos.length > 0 ? (
-						selectedLogos.map( ( logo ) => (
-							<LogoIcon logo={ logo } key={ logo.symbolId } />
-						) )
-					) : (
-						<Placeholder
-							icon={ code }
-							label={ __( 'Skill Logo', 'skill-logo' ) }
-							className="skill-logo__placeholder"
-						>
-							<p>{ __( 'No logos selected yet. Add one to get started.', 'skill-logo' ) }</p>
-						</Placeholder>
-					) 
+					<Placeholder
+						icon={ code }
+						label={ __( 'Skill Logo', 'skill-logo' ) }
+						className="skill-logo__placeholder"
+					>
+						<p>
+							{ __(
+								'No logos selected yet. Add one to get started.',
+								'skill-logo'
+							) }
+						</p>
+					</Placeholder>
 				) }
 			</div>
 		</>
