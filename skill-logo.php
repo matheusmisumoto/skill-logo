@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Skills SVG Logo Block
  * Description:       Displays configurable tech-stack logos and certification badges.
- * Version:           0.1.0
+ * Version:           0.1.3
  * Requires at least: 6.8
  * Requires PHP:      7.4
  * Author:            Matheus Misumoto
@@ -551,9 +551,29 @@ function tech_stack_skill_logo_render_logo_row( $index, array $logo = array() ) 
 	$label = $logo['label'] ?? '';
 	$key = $logo['key'] ?? '';
 	$svg = $logo['svg'] ?? '';
+	$summary_label = '' !== $label ? $label : __( 'Untitled logo', 'skill-logo' );
 
 	?>
-	<div class="skill-logo-row">
+	<details class="skill-logo-row">
+		<summary class="skill-logo-row__summary">
+			<span class="skill-logo-row__summary-label" data-skill-logo-summary><?php echo esc_html( $summary_label ); ?></span>
+			<svg class="skill-logo-row__summary-icon" viewBox="0 0 17 8.85">
+				<polyline data-accordion-icon-shape="" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none" fill-rule="evenodd" points="15 1.13 8.5 7.72 2 1.13">
+					<animate data-accordion-animate="expand" attributeName="points" values="15 1.13 8.5 7.72 2 1.13;
+					15.85 4.42 8.5 4.42 1.15 4.42;
+					15 7.72 8.5 1.13 2 7.72" dur="320ms" begin="indefinite" fill="freeze" keyTimes="0;
+					0.5;
+					1" calcMode="spline" keySplines="0.12, 0, 0.38, 0;
+						0.2, 1, 0.68, 1"></animate>
+					<animate data-accordion-animate="collapse" attributeName="points" values="15 7.72 8.5 1.13 2 7.72;
+					15.85 4.42 8.5 4.42 1.15 4.42;
+					15 1.13 8.5 7.72 2 1.13" dur="320ms" begin="indefinite" fill="freeze" keyTimes="0;
+					0.5;
+					1" calcMode="spline" keySplines="0.2, 0, 0.68, 0;
+						0.2, 1, 0.68, 1"></animate>
+				</polyline>
+			</svg>
+		</summary>
 		<div class="skill-logo-row__fields">
 			<div>
 				<label for="skill-logo-label-<?php echo esc_attr( $index ); ?>"><?php esc_html_e( 'Label', 'skill-logo' ); ?></label>
@@ -583,7 +603,7 @@ function tech_stack_skill_logo_render_logo_row( $index, array $logo = array() ) 
 				<button type="button" class="button button-secondary delete" data-skill-logo-remove><?php esc_html_e( 'Remove logo', 'skill-logo' ); ?></button>
 			</div>
 		</div>
-	</div>
+	</details>
 	<?php
 }
 
@@ -593,50 +613,85 @@ function tech_stack_skill_logo_render_logo_row( $index, array $logo = array() ) 
 function tech_stack_skill_logo_render_admin_page() {
 	$logos = tech_stack_skill_logo_get_saved_logos();
 	?>
+	<style>
+		h1 > span {
+			display: block;
+			font-size: 13px;
+			font-weight: normal;
+			margin: 13px 0;	
+		}
+		#skill-logo-rows {
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+			max-width: 600px;
+			margin: 2em 0;
+		}
+		.skill-logo-row {
+			padding: 1rem;
+			border: 1px solid #949494;
+			border-radius: 1rem;
+		}
+		.skill-logo-row__summary {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+			cursor: pointer;
+			font-weight: 600;
+			list-style: none;
+		}
+		.skill-logo-row__summary::-webkit-details-marker {
+			display: none;
+		}
+		.skill-logo-row__summary-label {
+			font-size: 1.3em;
+			min-width: 0;
+			flex-grow: 2;
+		}
+		.skill-logo-row__summary-icon {
+			height: .75em;
+			width: auto;
+		}
+		.skill-logo-row__fields {
+			display: flex;
+			flex-direction: column;
+			gap: 2em;
+			flex-wrap: wrap;
+			padding: 1rem 0;
+		}
+		.skill-logo-row__fields > div {
+			flex: 1 1;
+			display: flex;
+			flex-direction: row;
+		}
+		.skill-logo-row__fields > div > label,
+		.skill-logo-row__fields > div > div {
+			width: 150px;
+			font-weight: 600;
+		}
+		.skill-logo-row__fields > div > label:not(:has(+ textarea)) {
+			align-content: center;
+		}
+		.skill-logo-row__fields > div > textarea {
+			width: 350px;
+		}
+		.skill-logo-row__fields > div > .delete,
+		.skill-logo-row__fields > div > .delete:hover {
+			border-color: #b32d2e;
+			color: #b32d2e;
+		}
+		.skill-logo-row__fields > div > .delete:hover {
+			background-color: rgba(179, 45, 46, 0.04);
+		}
+	</style>
 	<div class="wrap">
-		<h1><?php esc_html_e( 'Manage logos', 'skill-logo' ); ?></h1>
-		<p><?php esc_html_e( 'Add SVG logos here and they will appear in the block editor selector.', 'skill-logo' ); ?></p>
-		<style>
-			.wrap form {
-				margin-top: 2em;
-			}
-			.skill-logo-row {
-				padding: 2em 0;
-			}
-			.skill-logo-row:not(:last-child) {
-				border-bottom: 1px solid #ddd;
-			}
-			.skill-logo-row__fields {
-				display: flex;
-				flex-direction: column;
-				gap: 2em;
-				flex-wrap: wrap;
-			}
-			.skill-logo-row__fields > div {
-				flex: 1 1;
-				display: flex;
-				flex-direction: row;
-			}
-			.skill-logo-row__fields > div > label,
-			.skill-logo-row__fields > div > div {
-				width: 150px;
-				font-weight: 600;
-			}
-			.skill-logo-row__fields > div > label:not(:has(+ textarea)) {
-				align-content: center;
-			}
-			.skill-logo-row__fields > div > textarea {
-			    width: 500px;
-			}
-			.skill-logo-row__fields > div > .delete,
-			.skill-logo-row__fields > div > .delete:hover {
-			    border-color: #b32d2e;
-				color: #b32d2e;
-			}
-			.skill-logo-row__fields > div > .delete:hover {
-			    background-color: rgba(179, 45, 46, 0.04);
-			}
-		</style>
+		<h1 class="wp-heading-inline">
+			<?php esc_html_e( 'Manage logos', 'skill-logo' ); ?>
+			<button type="button" class="page-title-action" id="skill-logo-add-row"><?php esc_html_e( 'Add Logo', 'skill-logo' ); ?></button>
+			<span><?php esc_html_e( 'Add SVG logos here and they will appear in the block editor selector.', 'skill-logo' ); ?></span>
+		</h1>		
+		
 		<form method="post" action="options.php">
 			<?php settings_fields( 'tech_stack_skill_logo' ); ?>
 			<?php settings_errors(); ?>
@@ -649,9 +704,6 @@ function tech_stack_skill_logo_render_admin_page() {
 					endif;
 				?>
 			</div>
-			<p>
-				<button type="button" class="button button-secondary" id="skill-logo-add-row"><?php esc_html_e( 'Add another logo', 'skill-logo' ); ?></button>
-			</p>
 			<?php submit_button(); ?>
 		</form>
 		<template id="skill-logo-row-template">
@@ -663,15 +715,11 @@ function tech_stack_skill_logo_render_admin_page() {
 		const container = document.getElementById( 'skill-logo-rows' );
 		const template = document.getElementById( 'skill-logo-row-template' );
 		const addButton = document.getElementById( 'skill-logo-add-row' );
+		const untitledLabel = '<?php echo esc_js( __( 'Untitled logo', 'skill-logo' ) ); ?>';
 
 		if ( ! container || ! template || ! addButton ) {
 			return;
 		}
-
-		const slugify = ( value ) => value
-			.toLowerCase()
-			.replace( /[^a-z0-9]+/g, '-' )
-			.replace( /^-+|-+$/g, '' );
 
 		const getNextIndex = () => {
 			const nextIndex = Number( container.dataset.nextIndex || container.children.length );
@@ -679,11 +727,55 @@ function tech_stack_skill_logo_render_admin_page() {
 			return nextIndex;
 		};
 
+		const getRowLabel = ( value ) => value.trim() || untitledLabel;
+
+		const updateRowSummary = ( row ) => {
+			if ( ! row ) {
+				return;
+			}
+
+			const input = row.querySelector( '[data-skill-logo-label]' );
+			const summary = row.querySelector( '[data-skill-logo-summary]' );
+
+			if ( ! input || ! summary ) {
+				return;
+			}
+
+			summary.textContent = getRowLabel( input.value || '' );
+		};
+
 		const createRow = ( index ) => {
 			const wrapper = document.createElement( 'div' );
 			wrapper.innerHTML = template.innerHTML.replace( /__INDEX__/g, String( index ) );
-			return wrapper.firstElementChild;
+			const row = wrapper.firstElementChild;
+
+			updateRowSummary( row );
+
+			return row;
 		};
+
+		const triggerAccordionAnimation = ( row ) => {
+			if ( ! row ) {
+				return;
+			}
+
+			const isOpen = row.open;
+			const animationType = isOpen ? 'expand' : 'collapse';
+			const animation = row.querySelector( `[data-accordion-animate="${animationType}"]` );
+
+			if ( animation ) {
+				animation.beginElement();
+			}
+		};
+
+		container.querySelectorAll( '.skill-logo-row' ).forEach( updateRowSummary );
+
+		// Attach accordion animation listeners
+		document.addEventListener( 'toggle', ( event ) => {
+			if ( event.target.classList.contains( 'skill-logo-row' ) ) {
+				triggerAccordionAnimation( event.target );
+			}
+		}, true );
 
 		addButton.addEventListener( 'click', () => {
 			const row = createRow( getNextIndex() );
@@ -704,6 +796,14 @@ function tech_stack_skill_logo_render_admin_page() {
 			if ( row ) {
 				row.remove();
 			}
+		} );
+
+		container.addEventListener( 'input', ( event ) => {
+			if ( ! event.target.matches( '[data-skill-logo-label]' ) ) {
+				return;
+			}
+
+			updateRowSummary( event.target.closest( '.skill-logo-row' ) );
 		} );
 
 	} )();
