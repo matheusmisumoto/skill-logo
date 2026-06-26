@@ -20,6 +20,8 @@
  * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-metadata/#view-script
  */
 
+/* global DOMParser */
+
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const SPRITE_SELECTOR = '.skill-logo__sprite-sheet';
 
@@ -75,7 +77,10 @@ function createSymbolForLogo( logo ) {
 
 	try {
 		const parser = new DOMParser();
-		const doc = parser.parseFromString( `<svg xmlns="${ SVG_NS }">${ content }</svg>`, 'image/svg+xml' );
+		const doc = parser.parseFromString(
+			`<svg xmlns="${ SVG_NS }">${ content }</svg>`,
+			'image/svg+xml'
+		);
 
 		if ( doc.querySelector( 'parsererror' ) ) {
 			return symbol;
@@ -86,7 +91,7 @@ function createSymbolForLogo( logo ) {
 		Array.from( svg.childNodes ).forEach( ( node ) => {
 			symbol.appendChild( document.importNode( node, true ) );
 		} );
-	} catch ( _ ) {
+	} catch {
 		// Parsing failed - return empty symbol to avoid injecting unsafe content
 		return symbol;
 	}

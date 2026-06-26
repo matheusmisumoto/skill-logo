@@ -116,10 +116,7 @@ export default function Edit( { attributes, setAttributes } ) {
 					setRuntimeLogos( data.logos );
 					setLoading( false );
 				}
-			} catch ( error ) {
-				// apiFetch throws an error object for non-2xx responses
-				console.error( 'Failed to fetch logos:', error );
-				
+			} catch {
 				if ( isActive ) {
 					setLoading( false );
 				}
@@ -266,15 +263,17 @@ export default function Edit( { attributes, setAttributes } ) {
 			</InspectorControls>
 			<div { ...blockProps }>
 				<LogoSprite logos={ selectedLogos } />
-				{ loading && selectedIds.length > 0 ? (
+				{ loading && selectedIds.length > 0 && (
 					<div className="skill-logo__loading">
 						<Spinner />
 					</div>
-				) : selectedLogos.length > 0 ? (
+				) }
+				{ ! loading &&
+					selectedLogos.length > 0 &&
 					selectedLogos.map( ( logo ) => (
 						<LogoIcon logo={ logo } key={ logo.symbolId } />
-					) )
-				) : (
+					) ) }
+				{ ! loading && selectedLogos.length === 0 && (
 					<Placeholder
 						icon={ code }
 						label={ __( 'Skill Logo', 'skill-logo' ) }

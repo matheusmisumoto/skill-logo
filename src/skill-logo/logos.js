@@ -1,3 +1,5 @@
+/* global DOMParser */
+
 const DEFAULT_VIEW_BOX = '0 0 96 96';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -10,18 +12,19 @@ function getRuntimeLogoData() {
 
 	try {
 		techStackSkillLogoData = window.techStackSkillLogoData || null;
-	} catch ( _ ) {}
+	} catch {}
 
 	if ( ! techStackSkillLogoData ) {
 		try {
-			techStackSkillLogoData = window.parent?.techStackSkillLogoData || null;
-		} catch ( _ ) {}
+			techStackSkillLogoData =
+				window.parent?.techStackSkillLogoData || null;
+		} catch {}
 	}
 
 	if ( ! techStackSkillLogoData ) {
 		try {
 			techStackSkillLogoData = window.top?.techStackSkillLogoData || null;
-		} catch ( _ ) {}
+		} catch {}
 	}
 
 	const logos = techStackSkillLogoData?.logos;
@@ -112,7 +115,8 @@ export function getSelectedLogos(
 	return values
 		.map(
 			( logoKey ) =>
-				getLogo( logoKey, logos ) || createSelectedLogoSnapshot( logoKey )
+				getLogo( logoKey, logos ) ||
+				createSelectedLogoSnapshot( logoKey )
 		)
 		.filter( Boolean );
 }
@@ -165,9 +169,7 @@ export function LogoSprite( { logos: selectedLogos } ) {
 					} );
 
 					container.appendChild( symbol );
-				} catch ( _ ) {
-					// ignore malformed logo content
-				}
+				} catch {}
 			}
 		);
 	}, [ selectedLogos ] );
