@@ -8,6 +8,10 @@
 	gap: var(--skill-logo-gap, 0.5rem);
 }
 
+.wp-block-tech-stack-skill-logo:has(.skill-logo__placeholder) {
+	padding: 0;
+}
+
 .wp-block-tech-stack-skill-logo .skill-logo__icon {
 	width: var(--skill-logo-size, 4.5rem);
 	height: var(--skill-logo-size, 4.5rem);

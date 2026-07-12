@@ -13,6 +13,11 @@ export default function save( { attributes } ) {
 		attributes.logos ??
 		( attributes.language ? [ attributes.language ] : [] );
 	const selectedLogos = getSelectedLogos( selectedIds, [] );
+
+	if ( selectedLogos.length === 0 ) {
+		return;
+	}
+
 	const logoSize = attributes.size;
 	const logoGap = attributes.gap;
 	const blockProps = useBlockProps.save( {

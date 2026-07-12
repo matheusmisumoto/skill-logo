@@ -273,7 +273,8 @@ export default function Edit( { attributes, setAttributes } ) {
 					selectedLogos.map( ( logo ) => (
 						<LogoIcon logo={ logo } key={ logo.symbolId } />
 					) ) }
-				{ ! loading && selectedLogos.length === 0 && (
+				{ ( selectedLogos === undefined ||
+					selectedLogos.length === 0 ) && (
 					<Placeholder
 						icon={ code }
 						label={ __( 'Skill Logo', 'skill-logo' ) }
