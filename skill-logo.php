@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Skills SVG Logo Block
  * Description:       Displays configurable tech-stack logos and certification badges.
- * Version:           0.1.3
+ * Version:           1.0.0
  * Requires at least: 6.8
  * Requires PHP:      7.4
  * Author:            Matheus Misumoto
