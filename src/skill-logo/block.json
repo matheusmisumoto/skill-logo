@@ -15,9 +15,6 @@
 	"attributes": {
 		"logos": {
 			"type": "array",
-			"items": {
-				"type": "string"
-			},
 			"default": []
 		},
 		"size": {
