@@ -21,7 +21,9 @@ export default function save( { attributes } ) {
 	const logoSize = attributes.size;
 	const logoGap = attributes.gap;
 	const blockProps = useBlockProps.save( {
-		'data-skill-logo-logos': selectedIds.join( ',' ),
+		'data-skill-logo-logos': selectedLogos
+			.map( ( logo ) => logo.key )
+			.join( ',' ),
 		style: {
 			...( typeof logoSize === 'number'
 				? {

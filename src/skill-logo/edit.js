@@ -4,7 +4,11 @@
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
  */
-import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
+import {
+	InspectorControls,
+	LinkControl,
+	useBlockProps,
+} from '@wordpress/block-editor';
 import {
 	Button,
 	PanelBody,
@@ -12,6 +16,7 @@ import {
 	RangeControl,
 	SelectControl,
 	Spinner,
+	ToggleControl,
 } from '@wordpress/components';
 import { close, code } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
@@ -32,13 +37,17 @@ import {
 	getSelectedLogos,
 	LogoIcon,
 	LogoSprite,
+	normalizeSelectedLogo,
 } from './logos';
 
 export default function Edit( { attributes, setAttributes } ) {
 	const [ loading, setLoading ] = useState( true );
 	const [ runtimeLogos, setRuntimeLogos ] = useState( [] );
-	const selectedIds = attributes.logos ?? [];
-	const selectedLogos = getSelectedLogos( selectedIds, runtimeLogos );
+	const [ activeLinkKey, setActiveLinkKey ] = useState( null );
+	const selectedLogoItems = ( attributes.logos ?? [] )
+		.map( normalizeSelectedLogo )
+		.filter( Boolean );
+	const selectedLogos = getSelectedLogos( selectedLogoItems, runtimeLogos );
 	const logoSize = attributes.size;
 	const logoGap = attributes.gap;
 	const logoOptions = [
@@ -67,6 +76,14 @@ export default function Edit( { attributes, setAttributes } ) {
 		setAttributes( { logos: nextLogos } );
 	};
 
+	const updateLogoItem = ( logoKey, updates ) => {
+		updateLogos(
+			selectedLogoItems.map( ( item ) =>
+				item.key === logoKey ? { ...item, ...updates } : item
+			)
+		);
+	};
+
 	const updateSize = ( nextSize ) => {
 		setAttributes( {
 			size:
@@ -88,20 +105,26 @@ export default function Edit( { attributes, setAttributes } ) {
 	const moveLogo = ( fromIndex, toIndex ) => {
 		if (
 			toIndex < 0 ||
-			toIndex >= selectedIds.length ||
+			toIndex >= selectedLogoItems.length ||
 			fromIndex === toIndex
 		) {
 			return;
 		}
 
-		const nextLogos = [ ...selectedIds ];
+		const nextLogos = [ ...selectedLogoItems ];
 		const [ movedLogo ] = nextLogos.splice( fromIndex, 1 );
 		nextLogos.splice( toIndex, 0, movedLogo );
 		updateLogos( nextLogos );
 	};
 
 	const removeLogo = ( logoKey ) => {
-		updateLogos( selectedIds.filter( ( item ) => item !== logoKey ) );
+		if ( activeLinkKey === logoKey ) {
+			setActiveLinkKey( null );
+		}
+
+		updateLogos(
+			selectedLogoItems.filter( ( item ) => item.key !== logoKey )
+		);
 	};
 
 	useEffect( () => {
@@ -175,27 +198,33 @@ export default function Edit( { attributes, setAttributes } ) {
 						onChange={ ( logoKey ) => {
 							if (
 								! logoKey ||
-								selectedIds.includes( logoKey )
+								selectedLogoItems.some(
+									( item ) => item.key === logoKey
+								)
 							) {
 								return;
 							}
 
-							updateLogos( [ ...selectedIds, logoKey ] );
+							updateLogos( [
+								...selectedLogoItems,
+								{ key: logoKey, url: '', opensInNewTab: false },
+							] );
 						} }
 					/>
 					<div
 						className="skill-logo__reorder"
 						aria-label={ __( 'Reorder logos', 'skill-logo' ) }
 					>
-						{ selectedIds.length > 0 ? (
-							selectedIds.map( ( logoKey, index ) => {
-								const logo = getLogo( logoKey );
-								const label = logo?.label || logoKey;
+						{ selectedLogoItems.length > 0 ? (
+							selectedLogoItems.map( ( selectedLogo, index ) => {
+								const logo = getLogo( selectedLogo.key, runtimeLogos );
+								const label = logo?.label || selectedLogo.key;
+								const isLinkEditorOpen = activeLinkKey === selectedLogo.key;
 
 								return (
 									<div
 										className="skill-logo__reorder-row"
-										key={ `${ logoKey }-${ index }` }
+										key={ `${ selectedLogo.key }-${ index }` }
 										draggable={ true }
 										onDragStart={ ( event ) => {
 											event.dataTransfer.effectAllowed =
@@ -227,26 +256,73 @@ export default function Edit( { attributes, setAttributes } ) {
 											moveLogo( fromIndex, index );
 										} }
 									>
-										<div
-											className="skill-logo__drag-handle"
-											aria-hidden="true"
-										>
-											<span />
-											<span />
-											<span />
-										</div>
-										<div className="skill-logo__reorder-content">
-											<span>{ label }</span>
-											<Button
-												variant="tertiary"
-												isDestructive
-												onClick={ () =>
-													removeLogo( logoKey )
-												}
+										<div className="skill-logo__reorder-row-main">
+											<div
+												className="skill-logo__drag-handle"
+												aria-hidden="true"
 											>
-												{ close }
-											</Button>
+												<span />
+												<span />
+												<span />
+											</div>
+											<div className="skill-logo__reorder-content">
+												<span>{ label }</span>
+												<Button
+													variant="tertiary"
+													onClick={ () =>
+														setActiveLinkKey(
+															isLinkEditorOpen ? null : selectedLogo.key
+														)
+													}
+												>
+													{ selectedLogo.url
+														? __( 'Edit link', 'skill-logo' )
+														: __( 'Link', 'skill-logo' ) }
+												</Button>
+												<Button
+													variant="tertiary"
+													isDestructive
+													onClick={ () =>
+														removeLogo( selectedLogo.key )
+													}
+												>
+													{ close }
+												</Button>
+											</div>
 										</div>
+										{ isLinkEditorOpen && (
+											<div className="skill-logo__link-editor">
+												<LinkControl
+													value={ {
+														url: selectedLogo.url || '',
+														title: label,
+													} }
+													onChange={ ( nextLink ) =>
+														updateLogoItem( selectedLogo.key, {
+															url: nextLink?.url || '',
+														} )
+													}
+													onRemove={ () =>
+														updateLogoItem( selectedLogo.key, {
+															url: '',
+															opensInNewTab: false,
+														} )
+													}
+												/>
+												<ToggleControl
+													label={ __(
+														'Open in new tab',
+														'skill-logo'
+													) }
+													checked={ Boolean( selectedLogo.opensInNewTab ) }
+													onChange={ ( nextValue ) =>
+														updateLogoItem( selectedLogo.key, {
+															opensInNewTab: nextValue,
+														} )
+													}
+												/>
+											</div>
+										) }
 									</div>
 								);
 							} )
@@ -263,7 +339,7 @@ export default function Edit( { attributes, setAttributes } ) {
 			</InspectorControls>
 			<div { ...blockProps }>
 				<LogoSprite logos={ selectedLogos } />
-				{ loading && selectedIds.length > 0 && (
+				{ loading && selectedLogoItems.length > 0 && (
 					<div className="skill-logo__loading">
 						<Spinner />
 					</div>
