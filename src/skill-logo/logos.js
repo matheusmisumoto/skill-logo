@@ -237,7 +237,7 @@ export function LogoSprite( { logos: selectedLogos } ) {
 	);
 }
 
-export function LogoIcon( { logo } ) {
+export function LogoIcon( { logo, renderLink = true } ) {
 	if ( ! logo ) {
 		return null;
 	}
@@ -258,7 +258,7 @@ export function LogoIcon( { logo } ) {
 		</svg>
 	);
 
-	if ( logo.url ) {
+	if ( renderLink && logo.url ) {
 		return (
 			<a
 				className="skill-logo__link"

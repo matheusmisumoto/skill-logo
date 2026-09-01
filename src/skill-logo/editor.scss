@@ -12,6 +12,14 @@
 	padding: 0;
 }
 
+.wp-block-tech-stack-skill-logo .skill-logo__sprite {
+	position: absolute;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+
 .wp-block-tech-stack-skill-logo .skill-logo__icon {
 	width: var(--skill-logo-size, 4.5rem);
 	height: var(--skill-logo-size, 4.5rem);
@@ -27,6 +35,78 @@
 .wp-block-tech-stack-skill-logo .skill-logo__link:focus-visible {
 	outline: 2px solid currentColor;
 	outline-offset: 4px;
+}
+
+.skill-logo__editor-item {
+	background: transparent;
+	border: none;
+	padding: 0.25rem;
+	margin: 0;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	border-radius: 8px;
+	line-height: 0;
+	color: inherit;
+	transition: outline-color 0.15s ease, box-shadow 0.15s ease;
+
+	&:hover {
+		outline: 1px dashed rgba(15, 23, 42, 0.35);
+		outline-offset: 2px;
+	}
+
+	&:focus-visible,
+	&.is-selected {
+		outline: 2px solid var(--wp-admin-theme-color, #3858e9);
+		outline-offset: 3px;
+		box-shadow: 0 0 0 1px #fff;
+	}
+
+	svg {
+		width: 4rem;
+		height: 4rem;
+	}
+}
+
+.skill-logo__link-badge {
+	position: absolute;
+	top: -3px;
+	right: -3px;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background: var(--wp-admin-theme-color, #3858e9);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+	pointer-events: none;
+
+	svg {
+		width: 11px;
+		height: 11px;
+		stroke: currentColor;
+		fill: none;
+	}
+}
+
+.components-popover.skill-logo__link-popover {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+
+	.components-popover__content {
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+}
+
+.skill-logo__link-popover-content {
+	min-width: 320px;
+	max-width: 420px;
 }
 
 .skill-logo__reorder {
@@ -82,6 +162,21 @@
 	gap: 0.75rem;
 	min-width: 0;
 	flex: 1;
+}
+
+.skill-logo__reorder-label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 0.875rem;
+	min-width: 0;
+}
+
+.skill-logo__reorder-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	flex-shrink: 0;
 
 	button {
 		font-size: 0.8125rem;
@@ -91,14 +186,6 @@
 			width: auto;
 		}
 	}
-}
-
-.skill-logo__link-editor {
-	display: grid;
-	gap: 0.75rem;
-	margin-left: 2rem;
-	padding-left: 0.75rem;
-	border-left: 2px solid rgba(15, 23, 42, 0.12);
 }
 
 .skill-logo__placeholder {
@@ -113,3 +200,4 @@
 	align-items: center;
 	gap: 8px;
 }
+
