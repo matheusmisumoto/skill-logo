@@ -23,7 +23,7 @@ import {
 } from '@wordpress/components';
 import { close, code, link, linkOff } from '@wordpress/icons';
 import { __, sprintf } from '@wordpress/i18n';
-import { useEffect, useRef, useState } from '@wordpress/element';
+import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 
 /**
@@ -50,22 +50,39 @@ export default function Edit( { attributes, setAttributes } ) {
 	const [ popoverAnchor, setPopoverAnchor ] = useState( null );
 	const logoRefs = useRef( {} );
 
-	const selectedLogoItems = ( attributes.logos ?? [] )
-		.map( normalizeSelectedLogo )
-		.filter( Boolean );
-	const selectedLogos = getSelectedLogos( selectedLogoItems, runtimeLogos );
+	const selectedLogoItems = useMemo(
+		() =>
+			( attributes.logos ?? [] )
+				.map( normalizeSelectedLogo )
+				.filter( Boolean ),
+		[ attributes.logos ]
+	);
+
+	const selectedLogos = useMemo(
+		() => getSelectedLogos( selectedLogoItems, runtimeLogos ),
+		[ selectedLogoItems, runtimeLogos ]
+	);
+
 	const logoSize = attributes.size;
 	const logoGap = attributes.gap;
-	const logoOptions = [
-		{
-			label: __( 'Choose a logo', 'skill-logo' ),
-			value: '',
-		},
-		...getLogoOptionsFromList( runtimeLogos ),
-	];
 
-	const activeLogoItem = selectedLogoItems.find(
-		( item ) => item.key === editingLogoKey
+	const logoOptions = useMemo(
+		() => [
+			{
+				label: __( 'Choose a logo', 'skill-logo' ),
+				value: '',
+			},
+			...getLogoOptionsFromList( runtimeLogos ),
+		],
+		[ runtimeLogos ]
+	);
+
+	const activeLogoItem = useMemo(
+		() =>
+			selectedLogoItems.find(
+				( item ) => item.key === editingLogoKey
+			) || null,
+		[ selectedLogoItems, editingLogoKey ]
 	);
 
 	const blockProps = useBlockProps( {
@@ -184,6 +201,12 @@ export default function Edit( { attributes, setAttributes } ) {
 
 		return () => {
 			isActive = false;
+		};
+	}, [] );
+
+	useEffect( () => {
+		return () => {
+			closeLinkPopover();
 		};
 	}, [] );
 
@@ -401,10 +424,7 @@ export default function Edit( { attributes, setAttributes } ) {
 					selectedLogos.length > 0 &&
 					selectedLogos.map( ( logo ) => {
 						const isSelected = editingLogoKey === logo.key;
-						const currentItem = selectedLogoItems.find(
-							( item ) => item.key === logo.key
-						);
-						const hasLink = Boolean( currentItem?.url );
+						const hasLink = Boolean( logo.url );
 
 						return (
 							<button

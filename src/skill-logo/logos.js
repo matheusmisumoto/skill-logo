@@ -3,6 +3,22 @@
 const DEFAULT_VIEW_BOX = '0 0 96 96';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
+const SAFE_URL_PATTERN = /^(?:(?:https?|mailto|tel):|\/|#)/i;
+
+export function sanitizeUrl( url ) {
+	if ( typeof url !== 'string' ) {
+		return '';
+	}
+
+	const trimmed = url.trim();
+
+	if ( ! trimmed ) {
+		return '';
+	}
+
+	return SAFE_URL_PATTERN.test( trimmed ) ? trimmed : '';
+}
+
 function normalizeSelectedLogo( selectedLogo ) {
 	if ( typeof selectedLogo === 'string' ) {
 		const key = selectedLogo.trim();
@@ -31,8 +47,7 @@ function normalizeSelectedLogo( selectedLogo ) {
 
 	return {
 		key,
-		url:
-			typeof selectedLogo.url === 'string' ? selectedLogo.url.trim() : '',
+		url: sanitizeUrl( selectedLogo.url ),
 		opensInNewTab: Boolean( selectedLogo.opensInNewTab ),
 	};
 }
@@ -242,12 +257,14 @@ export function LogoIcon( { logo, renderLink = true } ) {
 		return null;
 	}
 
+	const safeUrl = sanitizeUrl( logo.url );
+
 	const icon = (
 		<svg
 			className="skill-logo__icon"
-			role={ logo.url ? undefined : 'img' }
-			aria-label={ logo.url ? undefined : logo.label }
-			aria-hidden={ logo.url ? 'true' : undefined }
+			role={ safeUrl ? undefined : 'img' }
+			aria-label={ safeUrl ? undefined : logo.label }
+			aria-hidden={ safeUrl ? 'true' : undefined }
 			focusable="false"
 			viewBox={ logo.viewBox || DEFAULT_VIEW_BOX }
 		>
@@ -258,11 +275,11 @@ export function LogoIcon( { logo, renderLink = true } ) {
 		</svg>
 	);
 
-	if ( renderLink && logo.url ) {
+	if ( renderLink && safeUrl ) {
 		return (
 			<a
 				className="skill-logo__link"
-				href={ logo.url }
+				href={ safeUrl }
 				target={ logo.opensInNewTab ? '_blank' : undefined }
 				rel={
 					logo.opensInNewTab
