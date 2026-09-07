@@ -330,15 +330,16 @@ export default function Edit( { attributes, setAttributes } ) {
 												</span>
 												<div className="skill-logo__reorder-actions">
 													<Button
-														icon={
+														icon={ link }
+														className={
 															selectedLogo.url
-																? link
-																: linkOff
+																? 'skill-logo__link-button has-link'
+																: 'skill-logo__link-button is-unlinked'
 														}
 														label={
 															selectedLogo.url
 																? __(
-																		'Edit link',
+																		'Edit/remove link',
 																		'skill-logo'
 																  )
 																: __(
@@ -353,17 +354,7 @@ export default function Edit( { attributes, setAttributes } ) {
 																selectedLogo.key
 															)
 														}
-													>
-														{ selectedLogo.url
-															? __(
-																	'Edit link',
-																	'skill-logo'
-															  )
-															: __(
-																	'Link',
-																	'skill-logo'
-															  ) }
-													</Button>
+													/>
 													<Button
 														icon={ close }
 														label={ sprintf(

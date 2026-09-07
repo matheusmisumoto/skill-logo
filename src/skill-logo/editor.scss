@@ -185,6 +185,21 @@
 			height: 1.25rem;
 			width: auto;
 		}
+
+		&.skill-logo__link-button.is-unlinked:not(.is-pressed) {
+			opacity: 0.4;
+			color: #787c82;
+
+			&:hover,
+			&:focus {
+				opacity: 1;
+				color: inherit;
+			}
+		}
+
+		&.skill-logo__link-button.has-link:not(.is-pressed) {
+			color: var(--wp-admin-theme-color, #3858e9);
+		}
 	}
 }
 
