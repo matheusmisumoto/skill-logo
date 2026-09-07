@@ -3,6 +3,55 @@
 const DEFAULT_VIEW_BOX = '0 0 96 96';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
+const SAFE_URL_PATTERN = /^(?:(?:https?|mailto|tel):|\/|#)/i;
+
+export function sanitizeUrl( url ) {
+	if ( typeof url !== 'string' ) {
+		return '';
+	}
+
+	const trimmed = url.trim();
+
+	if ( ! trimmed ) {
+		return '';
+	}
+
+	return SAFE_URL_PATTERN.test( trimmed ) ? trimmed : '';
+}
+
+function normalizeSelectedLogo( selectedLogo ) {
+	if ( typeof selectedLogo === 'string' ) {
+		const key = selectedLogo.trim();
+
+		if ( ! key ) {
+			return null;
+		}
+
+		return {
+			key,
+			url: '',
+			opensInNewTab: false,
+		};
+	}
+
+	if ( ! selectedLogo || typeof selectedLogo !== 'object' ) {
+		return null;
+	}
+
+	const key =
+		typeof selectedLogo.key === 'string' ? selectedLogo.key.trim() : '';
+
+	if ( ! key ) {
+		return null;
+	}
+
+	return {
+		key,
+		url: sanitizeUrl( selectedLogo.url ),
+		opensInNewTab: Boolean( selectedLogo.opensInNewTab ),
+	};
+}
+
 function getRuntimeLogoData() {
 	if ( typeof window === 'undefined' ) {
 		return [];
@@ -36,12 +85,14 @@ function getRuntimeLogoData() {
 	return logos.map( ( logo ) => normalizeLogo( logo ) ).filter( Boolean );
 }
 
-function createSelectedLogoSnapshot( logoKey ) {
-	if ( typeof logoKey !== 'string' || ! logoKey.trim() ) {
+function createSelectedLogoSnapshot( selectedLogo ) {
+	const normalizedLogo = normalizeSelectedLogo( selectedLogo );
+
+	if ( ! normalizedLogo ) {
 		return null;
 	}
 
-	const key = logoKey.trim();
+	const { key, url, opensInNewTab } = normalizedLogo;
 
 	return {
 		key,
@@ -49,6 +100,8 @@ function createSelectedLogoSnapshot( logoKey ) {
 		symbolId: `skill-logo-${ key }`,
 		viewBox: DEFAULT_VIEW_BOX,
 		content: '',
+		url,
+		opensInNewTab,
 	};
 }
 
@@ -113,11 +166,25 @@ export function getSelectedLogos(
 	const values = Array.isArray( selectedLogos ) ? selectedLogos : [];
 
 	return values
-		.map(
-			( logoKey ) =>
-				getLogo( logoKey, logos ) ||
-				createSelectedLogoSnapshot( logoKey )
-		)
+		.map( ( selectedLogo ) => {
+			const normalizedLogo = normalizeSelectedLogo( selectedLogo );
+
+			if ( ! normalizedLogo ) {
+				return null;
+			}
+
+			const runtimeLogo = getLogo( normalizedLogo.key, logos );
+
+			if ( ! runtimeLogo ) {
+				return createSelectedLogoSnapshot( normalizedLogo );
+			}
+
+			return {
+				...runtimeLogo,
+				url: normalizedLogo.url,
+				opensInNewTab: normalizedLogo.opensInNewTab,
+			};
+		} )
 		.filter( Boolean );
 }
 
@@ -185,16 +252,19 @@ export function LogoSprite( { logos: selectedLogos } ) {
 	);
 }
 
-export function LogoIcon( { logo } ) {
+export function LogoIcon( { logo, renderLink = true } ) {
 	if ( ! logo ) {
 		return null;
 	}
 
-	return (
+	const safeUrl = sanitizeUrl( logo.url );
+
+	const icon = (
 		<svg
 			className="skill-logo__icon"
-			role="img"
-			aria-label={ logo.label }
+			role={ safeUrl ? undefined : 'img' }
+			aria-label={ safeUrl ? undefined : logo.label }
+			aria-hidden={ safeUrl ? 'true' : undefined }
 			focusable="false"
 			viewBox={ logo.viewBox || DEFAULT_VIEW_BOX }
 		>
@@ -204,4 +274,28 @@ export function LogoIcon( { logo } ) {
 			/>
 		</svg>
 	);
+
+	if ( renderLink && safeUrl ) {
+		return (
+			<a
+				className="skill-logo__link"
+				href={ safeUrl }
+				target={ logo.opensInNewTab ? '_blank' : undefined }
+				rel={
+					logo.opensInNewTab
+						? 'noopener noreferrer'
+						: undefined
+				}
+				aria-label={ logo.label }
+			>
+				{ icon }
+			</a>
+		);
+	}
+
+	return (
+		icon
+	);
 }
+
+export { normalizeSelectedLogo };

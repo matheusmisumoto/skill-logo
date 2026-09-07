@@ -21,6 +21,18 @@
 	height: var(--skill-logo-size, 4.5rem);
 }
 
+.wp-block-tech-stack-skill-logo .skill-logo__link {
+	display: inline-flex;
+	color: inherit;
+	text-decoration: none;
+	line-height: 0;
+}
+
+.wp-block-tech-stack-skill-logo .skill-logo__link:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 4px;
+}
+
 .skill-logo__sprite-sheet {
 	position: absolute;
 	width: 0;
